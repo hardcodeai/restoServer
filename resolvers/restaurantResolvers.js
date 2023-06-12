@@ -1,5 +1,6 @@
 const MenuItem = require('../models/MenuItem');
 const Restaurant = require('../models/Restaurant');
+const mongoose = require('mongoose')
 
 
 //test queries
@@ -49,15 +50,16 @@ const restaurantResolvers = {
     ]).exec();
 
     const restaurants = [...restaurantsByName, ...(restaurantsByDishes || []).map(p=>p.restaurant)]
-    console.log(restaurants)
     return restaurants
     // Implement logic to search restaurants by name and dishes
   },
 
-  getMenuItems: async ({ restaurantId }) => {
-    // Implement logic to fetch menu items by restaurant ID
+  getRestaurantDetails: async ({ restaurantId }) => {
+    const restaurant = await Restaurant.findById(restaurantId).exec();
     const menuItems = await MenuItem.find({restaurant: restaurantId}).exec();
-    return menuItems;
+    const restaurantDetails = {...(restaurant.toObject() || {}), dishes: menuItems || []};
+    console.log(restaurantDetails, 'this is the restaurant details')
+    return restaurantDetails
   },
 };
 

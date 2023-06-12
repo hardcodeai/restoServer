@@ -4,7 +4,7 @@ const MenuItem = require('./models/MenuItem');
 async function populateData() {
   try {
     // Clear existing data
-    await Restaurant.deleteMany();
+    // await Restaurant.deleteMany();
     // await MenuItem.deleteMany();
 
     // Generate restaurants

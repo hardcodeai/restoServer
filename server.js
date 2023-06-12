@@ -3,6 +3,7 @@ const { graphqlHTTP } = require('express-graphql');
 const { buildSchema } = require('graphql');
 const mongoose = require('mongoose');
 const { populateData } = require('./populateDummyData')
+const cors = require('cors');
 
 // Connect to MongoDB
 mongoose.connect('mongodb://localhost/restaurant_booking', {
@@ -15,18 +16,12 @@ mongoose.connection.once('open', () => {
   populateData()
 });
 
-
-// type Restaurant {
-//     _id: ID!
-//     name: String!
-//     dishes: [MenuItem!]
-//   }
-
 // Define GraphQL schema
 const schema = buildSchema(`
   type Restaurant {
     _id: ID!
     name: String!
+    dishes: [MenuItem!]
   }
 
   type MenuItem {
@@ -42,13 +37,14 @@ const schema = buildSchema(`
 
   type Query {
     searchRestaurants(query: String!): [Restaurant!]
-    getMenuItems(restaurantId: ID!): [MenuItem!]!
+    getRestaurantDetails(restaurantId: ID!): Restaurant!
     getCart(cartId: ID!): Cart!
     calculateTotalBill: Float!
   }
 
   type Mutation {
-    addToCart(userId: ID!, menuItemId: ID!): MenuItem!
+    addToCart(userId: ID!, menuItemId: ID!): Cart!
+    updateItemQuantity(cartId: ID!, menuItemId: ID!, quantity: Int!): Cart!
   }
 `);
 
@@ -65,6 +61,7 @@ const rootResolver = {
 // Create Express server
 const app = express();
 
+app.use(cors());
 // Define GraphQL endpoint
 app.use(
   '/graphql',
@@ -76,6 +73,6 @@ app.use(
 );
 
 // Start the server
-app.listen(3000, () => {
-  console.log('Server running on http://localhost:3000/graphql');
+app.listen(3200, () => {
+  console.log('Server running on http://localhost:3200/graphql');
 });
