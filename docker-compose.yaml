@@ -1,0 +1,16 @@
+version: '3'
+services:
+  backend:
+    build: .
+    ports:
+      - 3200:3200
+    environment:
+      - MONGO_HOST=mongodb
+      - MONGO_PORT=27017
+      - MONGO_DB=restaurant_booking
+    depends_on:
+      - mongodb
+  mongodb:
+    image: mongo:latest
+    ports:
+      - 27017:27017
