@@ -28,6 +28,7 @@ const schema = buildSchema(`
     _id: ID!
     name: String!
     price: Float!
+    quantity: Int
   }
 
   type Cart {
@@ -38,12 +39,12 @@ const schema = buildSchema(`
   type Query {
     searchRestaurants(query: String!): [Restaurant!]
     getRestaurantDetails(restaurantId: ID!): Restaurant!
-    getCart(cartId: ID!): Cart!
+    getCart(cartId: ID, userId: ID): Cart!
     calculateTotalBill: Float!
   }
 
   type Mutation {
-    addToCart(userId: ID!, menuItemId: ID!): Cart!
+    addToCart(userId: ID, cartId: ID, menuItemId: ID!): Cart!
     updateItemQuantity(cartId: ID!, menuItemId: ID!, quantity: Int!): Cart!
   }
 `);

@@ -53,7 +53,6 @@ const restaurantResolvers = {
     return restaurants
     // Implement logic to search restaurants by name and dishes
   },
-
   getRestaurantDetails: async ({ restaurantId }) => {
     const restaurant = await Restaurant.findById(restaurantId).exec();
     const menuItems = await MenuItem.find({restaurant: restaurantId}).exec();

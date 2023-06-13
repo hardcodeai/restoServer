@@ -1,4 +1,5 @@
 const Cart = require('../models/Cart');
+const MenuItem = require('../models/MenuItem');
 const mongoose = require('mongoose')
 
 
@@ -34,26 +35,23 @@ const mongoose = require('mongoose')
 
 
 const cartResolvers = {
-  getCart: async ({cartId}) => {
+  getCart: async ({cartId, userId}) => {
+    console.log(cartId,userId,"this is the thingy")
     try {
         const userCart = await Cart.aggregate([
-            {$match:{_id: new mongoose.Types.ObjectId(cartId)}}, 
+            {$match:{$or:[{_id: new mongoose.Types.ObjectId(cartId)},{userId}]}}, 
             {$limit: 1},
-            // {$lookup:{
-            //     let: {menu_item_ids: '$items.item'},
-            //     from: 'menuitems',
-            //     pipeline: [
-            //         {$match: {$expr: {$in: ['$_id', '$$menu_item_ids']}}},
-            //         {$project: {name: 1, price: 1}}
-            //     ],
-            //     as: 'items'
-            // }}
         ])
         .exec();
+        console.log(userCart,"this is the user cart")
 
-        console.log(userCart[0],"this is the user cart 0")
+        if(!userCart.length && userId){
+            userCart.push(new Cart({items:[], userId, cartId}).save());
+        }
 
-        return userCart[0] || {}
+        console.log(userCart[0],"this is the user cart after")
+
+        return userCart[0] || {};
     } catch (error) {
         console.error('Error retrieving cart:', error);
         throw new Error('Failed to retrieve cart');
@@ -65,22 +63,27 @@ const cartResolvers = {
     return 4.52;
   },
 
-  addToCart: async ({ userId, menuItemId}) => {
+  addToCart: async ({cartId, userId, menuItemId}) => {
     // Implement logic to add an item to the cart
     //if the cart exists, add the menu item to the cart
     // if the cart does not exist, create a new cart and add the menu item to the cart
     try {
-        const cart = await Cart.findOne({userId});
+        const cart = await Cart.findOne({$or:[{userId}, {_id: cartId}]});
+        const {_id,name,price} = await MenuItem.findOne({_id: menuItemId}).exec();
         if (cart) {
+            console.log('1') 
             // Add menu item to existing cart
-            cart.items.push([{item: menuItemId,quantity:1}]);
+            if(cart.items.find(p=>p._id == menuItemId)){
+                cart.items.find(p=>p._id == menuItemId).quantity++;
+            }else{
+                cart.items.push({_id, price, name , quantity:1});
+            }
             await cart.save();
             return cart;
         } else {
-            // Create new cart
             const newCart = new Cart({
                 id: '123',
-                items: [{item: menuItemId,quantity:1}],
+                items: [{_id, price, name ,quantity:1}],
                 userId,
             });
             await newCart.save();
@@ -92,34 +95,28 @@ const cartResolvers = {
     }
   },
   updateItemQuantity: async ({ cartId, menuItemId, quantity }) => {
-    // Implement logic to update the quantity of an item in the cart
-    // if the quantity is 0, remove the menu item from the cart
-    // if the quantity is greater than 0, update the quantity of the menu item in the cart
+    console.log(cartId, menuItemId, quantity,'control comes in here')
     try {
         const cart = await Cart.findOne({_id: cartId}).exec();
         let cartData = JSON.parse(JSON.stringify(cart));
         if (cartData) {
-
-            console.log(cartData,"this is the cart before")
-
-            // Update menu item quantity in existing cart
-
-            console.log(cartData.items.map(p=>p.item),menuItemId,cartData.items.map(p=>p.item).indexOf(menuItemId),"freaky")
-
-            const index = cartData.items.map(p=>p.item).indexOf(menuItemId);
-            console.log(index,"this is the index")
+            console.log(cartData,"this is the cart data----->")
+            const index = cartData.items.map(p=>p._id).indexOf(menuItemId);
+            console.log(index,"this is the index----->")
             if (index > -1) {
                 if (quantity === 0) {
+                    console.log(quantity,"quantity ---->")
                     cart.items.splice(index, 1);
                 } else {
-                    console.log('here')
-                    cart.items[index] = {menuItemId, quantity};
+                    console.log(quantity,"quantity ---->2")
+                    const {price,name,_id} = cart.items[index];
+                    cart.items[index] = {price, name , _id, quantity};
+                    console.log("hogya")
                 }
             }
 
-            console.log(cart,"this is the cart after")
-
             await cart.save();
+            
             return cart;
         } else {
             throw new Error('Cart does not exist');
