@@ -76,6 +76,6 @@ app.use(
 );
 
 // Start the server
-app.listen(4000, () => {
-  console.log('Server running on http://localhost:4000/graphql');
+app.listen(3200, () => {
+  console.log('Server running on http://localhost:3200/graphql');
 });
