@@ -8,7 +8,7 @@ RUN npm install
 
 COPY . .
 
-EXPOSE 4000
+EXPOSE 3200
 
 ENV MONGO_HOST mongodb
 ENV MONGO_PORT 27017
