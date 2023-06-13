@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 
 const restaurantSchema = new mongoose.Schema({
   name: String,
-  // Add more fields as per your requirements
+  image: String,
 });
 
 module.exports = mongoose.model('Restaurant', restaurantSchema);

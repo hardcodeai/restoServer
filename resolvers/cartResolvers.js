@@ -67,6 +67,9 @@ const cartResolvers = {
     // Implement logic to add an item to the cart
     //if the cart exists, add the menu item to the cart
     // if the cart does not exist, create a new cart and add the menu item to the cart
+
+    console.log(cartId,userId,menuItemId,"this is the thingy")
+    
     try {
         const cart = await Cart.findOne({$or:[{userId}, {_id: cartId}]});
         const {_id,name,price} = await MenuItem.findOne({_id: menuItemId}).exec();

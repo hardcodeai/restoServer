@@ -22,6 +22,7 @@ const schema = buildSchema(`
     _id: ID!
     name: String!
     dishes: [MenuItem!]
+    image: String
   }
 
   type MenuItem {
@@ -29,6 +30,7 @@ const schema = buildSchema(`
     name: String!
     price: Float!
     quantity: Int
+    image: String
   }
 
   type Cart {

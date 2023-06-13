@@ -30,6 +30,7 @@ const mongoose = require('mongoose')
 
 const restaurantResolvers = {
   searchRestaurants: async ({ query }) => {
+    console.log(query,"this is the query")
     const restaurantsByName = await Restaurant.aggregate([
         {
             $match:{name: {$regex: query, $options: 'i'}},
@@ -50,7 +51,11 @@ const restaurantResolvers = {
     ]).exec();
 
     const restaurants = [...restaurantsByName, ...(restaurantsByDishes || []).map(p=>p.restaurant)]
-    return restaurants
+    console.log(restaurants,'this is the restaurants')
+
+    const results = await Restaurant.find({_id:{$in:restaurants.map(p=>p._id)}}).exec();
+    console.log(results,"this is the results")
+    return results;
     // Implement logic to search restaurants by name and dishes
   },
   getRestaurantDetails: async ({ restaurantId }) => {
