@@ -36,31 +36,34 @@ const mongoose = require('mongoose')
 
 const cartResolvers = {
   getCart: async ({cartId, userId}) => {
-    console.log(cartId,userId,"this is the thingy")
     try {
         const userCart = await Cart.aggregate([
             {$match:{$or:[{_id: new mongoose.Types.ObjectId(cartId)},{userId}]}}, 
             {$limit: 1},
         ])
         .exec();
-        console.log(userCart,"this is the user cart")
 
         if(!userCart.length && userId){
             userCart.push(new Cart({items:[], userId, cartId}).save());
         }
-
-        console.log(userCart[0],"this is the user cart after")
-
         return userCart[0] || {};
     } catch (error) {
-        console.error('Error retrieving cart:', error);
         throw new Error('Failed to retrieve cart');
     }
   },
 
-  calculateTotalBill: async ({userId}) => {
+  calculateTotalBill: async ({cartId,discountrate,taxRate}) => {
     // Implement logic to calculate the total bill
-    return 4.52;
+    const {items} = await Cart.findById(cartId).exec();
+    const discount = discountRate || 0;
+    const tax = taxRate || 0;
+    // Calculate the total price
+    const totalPrice = cartItems.reduce((acc, item) => acc + item.price, 0);
+    // Apply discount and tax to the total price
+    const discountedPrice = totalPrice - (totalPrice * discount) / 100;
+    const totalPriceWithTax = discountedPrice + (discountedPrice * tax) / 100;
+
+    return totalPriceWithTax;
   },
 
   addToCart: async ({cartId, userId, menuItemId}) => {
@@ -68,13 +71,10 @@ const cartResolvers = {
     //if the cart exists, add the menu item to the cart
     // if the cart does not exist, create a new cart and add the menu item to the cart
 
-    console.log(cartId,userId,menuItemId,"this is the thingy")
-    
     try {
         const cart = await Cart.findOne({$or:[{userId}, {_id: cartId}]});
         const {_id,name,price} = await MenuItem.findOne({_id: menuItemId}).exec();
         if (cart) {
-            console.log('1') 
             // Add menu item to existing cart
             if(cart.items.find(p=>p._id == menuItemId)){
                 cart.items.find(p=>p._id == menuItemId).quantity++;
@@ -93,28 +93,21 @@ const cartResolvers = {
             return newCart;
         } 
     } catch (error) {
-        console.error('Error adding item to cart:', error);
         throw new Error('Failed to add item to cart');
     }
   },
   updateItemQuantity: async ({ cartId, menuItemId, quantity }) => {
-    console.log(cartId, menuItemId, quantity,'control comes in here')
     try {
         const cart = await Cart.findOne({_id: cartId}).exec();
         let cartData = JSON.parse(JSON.stringify(cart));
         if (cartData) {
-            console.log(cartData,"this is the cart data----->")
             const index = cartData.items.map(p=>p._id).indexOf(menuItemId);
-            console.log(index,"this is the index----->")
             if (index > -1) {
                 if (quantity === 0) {
-                    console.log(quantity,"quantity ---->")
                     cart.items.splice(index, 1);
                 } else {
-                    console.log(quantity,"quantity ---->2")
                     const {price,name,_id} = cart.items[index];
                     cart.items[index] = {price, name , _id, quantity};
-                    console.log("hogya")
                 }
             }
 
@@ -125,7 +118,6 @@ const cartResolvers = {
             throw new Error('Cart does not exist');
         } 
     } catch (error) {
-        console.error('Error updating item quantity:', error);
         throw new Error('Failed to update item quantity');
     }
   }

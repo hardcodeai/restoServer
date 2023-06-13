@@ -42,7 +42,7 @@ const schema = buildSchema(`
     searchRestaurants(query: String!): [Restaurant!]
     getRestaurantDetails(restaurantId: ID!): Restaurant!
     getCart(cartId: ID, userId: ID): Cart!
-    calculateTotalBill: Float!
+    calculateTotalBill(cartId: ID!, discountRate:Float, taxRate:Float): Float!
   }
 
   type Mutation {
